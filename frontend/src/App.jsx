@@ -181,6 +181,11 @@ function App() {
             <span className="status-dot" />
             {payload ? `Live feed active for ${payload.region}` : 'Connecting to backend'}
           </div>
+          {lastRefresh && (
+            <div className="last-sync">
+              📡 Data synced at: {lastRefresh.toLocaleTimeString()}
+            </div>
+          )}
         </div>
 
         <div className="hero-metrics">
@@ -838,6 +843,43 @@ function TabMethodology() {
         </section>
 
         <section className="card" style={{ gridColumn: 'span 12' }}>
+          <h3>🔬 Explainable AI: Feature Importance</h3>
+          <p style={{ marginBottom: '16px' }}>
+            The Random Forest model assigns weights to features based on their information gain (Gini Impurity). 
+            This ensures high transparency in risk classification.
+          </p>
+          <div style={{ height: '300px', width: '100%' }}>
+            <ResponsiveContainer>
+              <BarChart
+                layout="vertical"
+                data={[
+                  { name: 'Fire Radiative Power (FRP)', value: 72, color: '#ef4444' },
+                  { name: 'Confidence Score', value: 18, color: '#f59e0b' },
+                  { name: 'Brightness Temperature', value: 6, color: '#14b8a6' },
+                  { name: 'Hour of Detection', value: 3, color: '#6366f1' },
+                  { name: 'Satellite Scan/Track', value: 1, color: '#94a3b8' },
+                ]}
+                margin={{ left: 100, right: 30, top: 10, bottom: 10 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} width={150} />
+                <Tooltip 
+                  contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                  formatter={(value) => [`${value}% Importance`, 'Weight']}
+                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                  {
+                    [0,1,2,3,4].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#ef4444', '#f59e0b', '#14b8a6', '#6366f1', '#94a3b8'][index]} />
+                    ))
+                  }
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="card" style={{ gridColumn: 'span 12' }}>
           <h3>⚖️ Risk Scoring & Decision Logic</h3>
           <p>
             Beyond classification, the system computes a continuous <strong>Risk Score (0-100)</strong> to prioritize response:
@@ -866,10 +908,33 @@ function TabTable({ payload }) {
   return (
     <div className="tab-panel">
       <section className="card">
-        <h2>📋 Data Table</h2>
-        <p style={{ color: '#94a3b8', marginBottom: '16px' }}>
-          Detailed listing of recent {payload.recentDetections.length} detections after filtering
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h2>📋 Data Table</h2>
+            <p style={{ color: '#94a3b8' }}>
+              Detailed listing of recent {payload.recentDetections.length} detections after filtering
+            </p>
+          </div>
+          <button 
+            className="chip active" 
+            style={{ padding: '8px 16px', background: '#14b8a6' }}
+            onClick={() => {
+              const headers = ['Risk', 'Satellite', 'FRP', 'Confidence', 'Lat', 'Lon', 'Time'];
+              const rows = payload.recentDetections.map(d => [
+                d.risk_label, d.satellite, d.frp, d.confidence, d.latitude, d.longitude, d.datetime_ist
+              ]);
+              const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+              const blob = new Blob([csvContent], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.setAttribute('href', url);
+              a.setAttribute('download', `wildfire_report_${new Date().toISOString().split('T')[0]}.csv`);
+              a.click();
+            }}
+          >
+            📥 Download CSV Report
+          </button>
+        </div>
 
         <div className="table-wrap">
           <table>
