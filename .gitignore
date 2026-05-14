@@ -1,0 +1,32 @@
+# Python virtual environments
+.venv/
+.venv_win/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+
+# PIDs
+.pids/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.production
